@@ -1,0 +1,107 @@
+name: e2e-android
+
+# Manual trigger: an emulator run takes ~15 minutes, too slow for every push.
+on:
+  workflow_dispatch:
+    inputs:
+      app_release:
+        description: 'My Demo App release tag to test'
+        required: false
+        default: '2.3.0'
+
+permissions:
+  contents: read
+
+env:
+  API_LEVEL: 34
+  APPIUM_VERSION: 3.8.0
+  UIAUTOMATOR2_VERSION: 8.7.0
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Enable KVM (hardware acceleration for the emulator)
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Install Appium and the UiAutomator2 driver
+        run: |
+          npm install -g appium@${APPIUM_VERSION}
+          appium driver install uiautomator2@${UIAUTOMATOR2_VERSION}
+          appium --version
+          appium driver list --installed
+
+      - name: Download the app under test
+        run: npm run fetch-app
+        env:
+          GH_TOKEN: ${{ github.token }}
+          APP_RELEASE: ${{ inputs.app_release }}
+
+      - name: Cache AVD snapshot
+        uses: actions/cache@v4
+        id: avd-cache
+        with:
+          path: |
+            ~/.android/avd/*
+            ~/.android/adb*
+          key: avd-${{ env.API_LEVEL }}-google_apis-x86_64-pixel_7
+
+      - name: Create AVD and generate snapshot for caching
+        if: steps.avd-cache.outputs.cache-hit != 'true'
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ env.API_LEVEL }}
+          target: google_apis
+          arch: x86_64
+          profile: pixel_7
+          force-avd-creation: false
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: true
+          script: echo "Generated AVD snapshot for caching."
+
+      - name: Run the regression suite on the emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        env:
+          TIMEOUT_FACTOR: 2
+          SPEC_FILE_RETRIES: 1
+          RUN_SUBTITLE: 'Pixel 7 emulator, Android API ${{ env.API_LEVEL }}, app release ${{ inputs.app_release }}'
+        with:
+          api-level: ${{ env.API_LEVEL }}
+          target: google_apis
+          arch: x86_64
+          profile: pixel_7
+          force-avd-creation: false
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: true
+          script: npm test
+
+      - name: Write run summary
+        if: always()
+        run: npm run report
+
+      - name: Upload reports (JUnit, failure screenshots, page sources, Appium log)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-android-reports
+          path: reports/
+          if-no-files-found: warn
+          retention-days: 14
