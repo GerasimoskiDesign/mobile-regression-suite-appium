@@ -1,0 +1,22 @@
+# dependencies
+node_modules/
+
+# app under test (downloaded by `npm run fetch-app`)
+apps/
+
+# run output (JUnit XML, failure screenshots, Appium logs)
+reports/
+
+# secrets / local settings
+.env
+
+# local working notes
+PLAN.md
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.log
+*.tmp.mjs
