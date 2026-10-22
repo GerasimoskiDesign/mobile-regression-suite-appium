@@ -70,7 +70,7 @@ The CI emulator renders in software (no GPU), so every step is slower there; its
 
 ## Production context
 
-> _Production context: TODO(Mario) — what the real version did and its outcomes, using only publicly shareable facts._
+The production version classified ~60 manual pre-release regression cases and automated the UI-only set first, as a proof of concept now being extended.
 
 ## Quickstart
 
