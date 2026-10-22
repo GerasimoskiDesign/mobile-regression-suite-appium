@@ -1,6 +1,6 @@
 name: e2e-android
 
-# Manual trigger: an emulator run takes ~15 minutes, too slow for every push.
+# Manual trigger: an emulator run takes ~20 minutes, too slow for every push.
 on:
   workflow_dispatch:
     inputs:
@@ -82,7 +82,6 @@ jobs:
         env:
           TIMEOUT_FACTOR: 2
           SPEC_FILE_RETRIES: 1
-          RUN_SUBTITLE: 'Pixel 7 emulator, Android API ${{ env.API_LEVEL }}, app release ${{ inputs.app_release }}'
         with:
           api-level: ${{ env.API_LEVEL }}
           target: google_apis
@@ -96,6 +95,8 @@ jobs:
       - name: Write run summary
         if: always()
         run: npm run report
+        env:
+          RUN_SUBTITLE: 'GitHub Actions, Pixel 7 emulator, Android API ${{ env.API_LEVEL }}, app release ${{ inputs.app_release }}'
 
       - name: Upload reports (JUnit, failure screenshots, page sources, Appium log)
         if: always()

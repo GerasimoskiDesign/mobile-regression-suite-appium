@@ -93,3 +93,13 @@ below must match the table. Regenerate the summary with `npm run matrix`.
 | ID       | Found by | Description                                                                                                                                                                                                                                            | Status                                                                                |
 | -------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------- |
 | KNOWN-01 | PDP-04   | In app releases 2.2.0 and 2.3.0, tapping the catalog tile in grid position 2, or any tile from position 5 onwards, crashes the app (`NullPointerException` / `ArrayIndexOutOfBoundsException` in `ProductCatalogFragment`). Positions 1, 3 and 4 work. | Open upstream. PDP-04 is tagged `@known-defect` and quarantined from the default run. |
+
+## Verified runs
+
+The automated rows above were run end to end on app release 2.3.0 (default run: 29 tests in
+8 spec files; the quarantined `PDP-04` runs separately with `npm run test:known-defects`).
+
+| Where                                          | Passed | Failed | Spec-file retries used | Test time   |
+| ---------------------------------------------- | ------ | ------ | ---------------------- | ----------- |
+| Local Pixel 7 emulator, Android 14 (API 34)    | 29     | 0      | 0                      | 8 min 50 s  |
+| GitHub Actions `e2e-android` (emulator API 34) | 29     | 0      | 0                      | 13 min 21 s |

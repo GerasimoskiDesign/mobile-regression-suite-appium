@@ -53,7 +53,14 @@ Everything below comes from running this repository against the public demo app 
 
 ![Regression cases by type](docs/img/matrix-coverage.svg)
 
-**A passing run** on a local Pixel 7 emulator (Android 14, app release 2.3.0): 29 of 29 tests passed in 8 min 50 s of test time (10 min 21 s wall clock including session start-up per spec file). The same suite runs green in GitHub Actions via the `e2e-android` workflow.
+**Passing runs** of the default suite (29 tests in 8 spec files, the quarantined `PDP-04` excluded), app release 2.3.0:
+
+| Where                                                    | Passed | Spec-file retries used | Test time   | Suite wall clock | Whole job   |
+| -------------------------------------------------------- | ------ | ---------------------- | ----------- | ---------------- | ----------- |
+| Local Pixel 7 emulator, Android 14 (API 34)              | 29/29  | 0                      | 8 min 50 s  | 10 min 21 s      | -           |
+| GitHub Actions `e2e-android`, emulator API 34, first run | 29/29  | 0                      | 13 min 21 s | 15 min 46 s      | 20 min 49 s |
+
+The CI emulator renders in software (no GPU), so every step is slower there; its wait limits are doubled (`TIMEOUT_FACTOR=2`) so slowness is not reported as a failure. "Whole job" includes installing Appium, downloading the app and creating the AVD (no cached snapshot on the first run). The CI run report is uploaded as the `e2e-android-reports` artifact.
 
 ![Run summary](docs/img/run-summary.png)
 
